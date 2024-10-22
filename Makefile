@@ -29,7 +29,11 @@ clean:
 	@rm -f *.dockerfile
 	@rm -f */*.dockerfile
 
-all: $(ALL)
+.git/hooks/pre-commit: sportsref.md
+	@$(DAC) -t -R $@ $< > $@
+	@chmod 0755 $@
+
+all: .git/hooks/pre-commit $(ALL)
 .PHONY: all default clean
 
 README.md: sportsref.md

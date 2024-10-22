@@ -1,12 +1,35 @@
+Note to readers:
+
+When I have assignments like this I like to use [Literate Programming](http://www.literateprogramming.com/) tools to show my code and my thought process. I have written my own literate programming tool [dac](bin/dac) **Documentation As Code** based on [noweb](https://www.cs.tufts.edu/~nr/noweb/). 
+
+I use a pre-commit hook to make sure dac is run before committing. This ensures that I have created the files that I need, and I have the options of running tests and they pass before I commit code.
+
+```
+#!/bin/bash
+
+# Change to the repository's root directory
+cd "$(git rev-parse --show-cdup)"
+
+# Run make clean all
+make clean all
+
+# Exit with a non-zero status code if the command fails
+if [ $? -ne 0 ]; then
+  echo "Error: make clean all failed"
+  exit 1
+fi
+```
+
+Thanks, /mek
+
+---
+
 # Docker (Part 1)
 
 1. Create a Dockerfile that produces a Docker image that, when run as a container, outputs the external IP of the container/host and then exits
 
-I want to say that the wording is a bit confusing, but I'll assume
-that it means the external IP of the host by making a curl connection
-to a system that reports that external IP address. On my local
-machine that would be the external IP address on my router, which
-I'll obtain it by making a curl request to `https://ifconfig.me.`
+I want to say that the wording is a bit confusing, but I'll assume that it means the external IP of the host by making a curl connection to a system that reports that external IP address. On my local machine that would be the external IP address on my router, which I'll obtain it by making a curl request to `https://ifconfig.me.`
+
 
 ```Dockerfile
 FROM alpine:3.18
@@ -22,7 +45,7 @@ ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
 your container IP address. 
 
 ```shell
-dac -t -R part1/docker.dockerfile sportsref.md \
+dac -t -R part1/docker.dockerfile sportsref.md | \
 docker build -t docker:srpart1 -f - .
 docker run -p 8888:80 docker:srpart1
 ```
@@ -113,6 +136,7 @@ I will also need to have the local directory have read, write, access permission
 ```shell
 mkdir webroot
 chmod 775 webroot
+echo "We democratize data, so our users enjoy, understand, and share the sports they love." > webroot/index.html
 ```
 
 ```yaml
@@ -476,3 +500,263 @@ a registry. If a new version is available, predefined steps could be taken to ge
 Moving the docker image into `docker-compose` has some advantages if 
 You can use the `restart --build` option for docker-compose.
 
+---
+
+Testing:
+
+; make run-part1
+```
+#0 building with "rancher-desktop" instance using docker driver
+
+#1 [internal] load build definition from docker.dockerfile
+#1 transferring dockerfile: 313B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/alpine:3.18
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [stage-1 1/3] FROM docker.io/library/alpine:3.18
+#4 DONE 0.0s
+
+#5 [stage-1 2/3] RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
+#5 CACHED
+
+#6 [stage-1 3/3] RUN apk add --no-cache curl
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 writing image sha256:05c63c0f1f26edc954715aa02c62cfb2bf0ea93c24b7edb176783433ad4e6e96 done
+#7 naming to docker.io/library/docker:srpart1 done
+#7 DONE 0.0s
+75.118.59.7
+```
+; make run-part2a
+```
+% make run-part2a
+#0 building with "rancher-desktop" instance using docker driver
+
+#1 [internal] load build definition from apache.dockerfile
+#1 transferring dockerfile: 123B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/httpd:2.4
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/1] FROM docker.io/library/httpd:2.4
+#4 CACHED
+
+#5 exporting to image
+#5 exporting layers done
+#5 writing image sha256:c61344c777bb9929480f62fbb3008145b7c14d69e51876112e67761c73b5a29f done
+#5 naming to docker.io/library/docker:srpart2a done
+#5 DONE 0.0s
+#0 building with "rancher-desktop" instance using docker driver
+
+#1 [internal] load build definition from apache8888.dockerfile
+#1 transferring dockerfile: 155B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/httpd:2.4
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/1] FROM docker.io/library/httpd:2.4
+#4 CACHED
+
+#5 exporting to image
+#5 exporting layers done
+#5 writing image sha256:08689bfa4a3b407e93e900d4033c506e6d9d288d82757a962dc1ab5be3765074 done
+#5 naming to docker.io/library/docker:srpart2b done
+#5 DONE 0.0s
+#0 building with "rancher-desktop" instance using docker driver
+
+#1 [web internal] load build definition from apache.dockerfile
+#1 transferring dockerfile: 123B done
+#1 DONE 0.0s
+
+#2 [web internal] load metadata for docker.io/library/httpd:2.4
+#2 DONE 0.0s
+
+#3 [web internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [web 1/1] FROM docker.io/library/httpd:2.4
+#4 CACHED
+
+#5 [web] exporting to image
+#5 exporting layers done
+#5 writing image sha256:1e337719117aafe48df416784bed487a6c4665c06d30dcf508dc5610f6ac99de done
+#5 naming to docker.io/library/part2-web done
+#5 DONE 0.0s
+
+#6 [web] resolving provenance for metadata file
+#6 DONE 0.0s
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
+[Tue Oct 22 14:13:54.018646 2024] [mpm_event:notice] [pid 1:tid 1] AH00489: Apache/2.4.62 (Unix) configured -- resuming normal operations
+[Tue Oct 22 14:13:54.023510 2024] [core:notice] [pid 1:tid 1] AH00094: Command line: '/usr/local/apache2/bin/httpd -D FOREGROUND'
+172.17.0.1 - - [22/Oct/2024:14:15:31 +0000] "GET / HTTP/1.1" 200 45
+
+Checking: 
+
+curl  http://localhost:8888[?2004l
+<html><body><h1>It works!</h1></body></html>
+```
+
+; make run-part2b
+```
+#0 building with "rancher-desktop" instance using docker driver
+
+#1 [internal] load build definition from apache.dockerfile
+#1 transferring dockerfile: 123B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/httpd:2.4
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/1] FROM docker.io/library/httpd:2.4
+#4 CACHED
+
+#5 exporting to image
+#5 exporting layers done
+#5 writing image sha256:c61344c777bb9929480f62fbb3008145b7c14d69e51876112e67761c73b5a29f done
+#5 naming to docker.io/library/docker:srpart2a done
+#5 DONE 0.0s
+#0 building with "rancher-desktop" instance using docker driver
+
+#1 [internal] load build definition from apache8888.dockerfile
+#1 transferring dockerfile: 155B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/httpd:2.4
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/1] FROM docker.io/library/httpd:2.4
+#4 CACHED
+
+#5 exporting to image
+#5 exporting layers done
+#5 writing image sha256:08689bfa4a3b407e93e900d4033c506e6d9d288d82757a962dc1ab5be3765074 done
+#5 naming to docker.io/library/docker:srpart2b done
+#5 DONE 0.0s
+#0 building with "rancher-desktop" instance using docker driver
+
+#1 [web internal] load build definition from apache.dockerfile
+#1 transferring dockerfile: 123B done
+#1 DONE 0.0s
+
+#2 [web internal] load metadata for docker.io/library/httpd:2.4
+#2 DONE 0.0s
+
+#3 [web internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [web 1/1] FROM docker.io/library/httpd:2.4
+#4 CACHED
+
+#5 [web] exporting to image
+#5 exporting layers done
+#5 writing image sha256:1e337719117aafe48df416784bed487a6c4665c06d30dcf508dc5610f6ac99de done
+#5 naming to docker.io/library/part2-web done
+#5 DONE 0.0s
+
+#6 [web] resolving provenance for metadata file
+#6 DONE 0.0s
+[+] Running 1/0
+ ✔ Container part2-web-1  Created                                                         0.0s
+Attaching to web-1
+web-1  | AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.19.0.2. Set the 'ServerName' directive globally to suppress this message
+web-1  | AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.19.0.2. Set the 'ServerName' directive globally to suppress this message
+web-1  | [Tue Oct 22 14:17:45.225986 2024] [mpm_event:notice] [pid 1:tid 1] AH00489: Apache/2.4.62 (Unix) configured -- resuming normal operations
+web-1  | [Tue Oct 22 14:17:45.228425 2024] [core:notice] [pid 1:tid 1] AH00094: Command line: '/usr/local/apache2/bin/httpd -D FOREGROUND'
+
+curl http://localhost:8888
+We democratize data, so our users enjoy, understand, and share the sports they love.
+```
+
+; make apply-part3
+```
+Not showing info all info:
+
+tls_private_key.ec2_key: Creating...
+aws_security_group.allow_ssh: Creating...
+tls_private_key.ec2_key: Creation complete after 1s [id=cda12d5401816ce4b32c44937dcb77f46c0575d8]
+aws_key_pair.ec2_key_pair: Creating...
+local_file.ssh_key: Creating...
+local_file.ssh_key: Creation complete after 0s [id=3f8b262b6cc8feab8ba33b1ef9a5f56ced0442cf]
+aws_key_pair.ec2_key_pair: Creation complete after 1s [id=my-ec2-keypair]
+aws_security_group.allow_ssh: Creation complete after 2s [id=sg-03ce8933f81dc633c]
+aws_instance.ec2_instance: Creating...
+aws_instance.ec2_instance: Still creating... [10s elapsed]
+aws_instance.ec2_instance: Creation complete after 14s [id=i-05753d7d471a07f30]
+
+% ssh -i part3/ec2-keypair.pem ec2-user@54.196.156.188
+The authenticity of host '54.196.156.188 (54.196.156.188)' can't be established.
+ED25519 key fingerprint is SHA256:hlGZwKeE6T7Dh57q7BMiRqRnmjg8/bWAfiKa9wPX3nA.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '54.196.156.188' (ED25519) to the list of known hosts.
+   ,     #_
+   ~\_  ####_        Amazon Linux 2
+  ~~  \_#####\
+  ~~     \###|       AL2 End of Life is 2025-06-30.
+  ~~       \#/ ___
+   ~~       V~' '->
+    ~~~         /    A newer version of Amazon Linux is available!
+      ~~._.   _/
+         _/ _/       Amazon Linux 2023, GA and supported until 2028-03-15.
+       _/m/'           https://aws.amazon.com/linux/amazon-linux-2023/
+
+[ec2-user@ip-172-31-15-18 ~]$ docker version
+Client:
+ Version:           25.0.5
+ API version:       1.44
+ Go version:        go1.22.5
+ Git commit:        5dc9bcc
+ Built:             Thu Aug 22 17:25:26 2024
+ OS/Arch:           linux/amd64
+ Context:           default
+
+Server:
+ Engine:
+  Version:          25.0.6
+  API version:      1.44 (minimum version 1.24)
+  Go version:       go1.22.5
+  Git commit:       b08a51f
+  Built:            Thu Aug 22 17:26:01 2024
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          1.7.22
+  GitCommit:        7f7fdf5fed64eb6a7caf99b3e12efcf9d60e311c
+ runc:
+  Version:          1.1.14
+  GitCommit:        2c9f5602f0ba3d9da1c2596322dfc4e156844890
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+```
+
+q.e.d
