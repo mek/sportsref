@@ -38,24 +38,24 @@ I will assume that the port that the Apache server listens on is
 not critical, but will include an example of how you could 
 run Apache on port 8888 in the container.
 
-"`Dockerfile
+```Dockerfile
 FROM httpd:2.4
 ENTRYPOINT ["/usr/local/apache2/bin/httpd", "-D", "FOREGROUND"]
 
 Build and run the Docker container with the following commands:
-"`shell
+```shell
 dac -t -R apache8888.dockerfile docker-compose.md | \
 docker build -t docker:srtest2 -f - .
 docker run -p 8888:80 docker:srtest2 
 ```
 
-````Dockerfile
+```Dockerfile
 FROM httpd:2.4
 ENTRYPOINT ["/usr/local/apache2/bin/apachectl", "-D", "FOREGROUND", "-D", "HTTP_PORT=8888"]
 ```
 
 Build and run the Docker container with the following commands:
-"`shell
+```shell
 dac -t -R apache8888.dockerfile docker-compose.md | \
 docker build -t docker8888:srtest2 -f - .
 docker run -p 8888:8888 docker8888:srtest2 
@@ -102,12 +102,12 @@ For this case, I'll mount a local directory `webroot` to `/usr/local/apache2/htd
 
 I will also need to have the local directory have read, write, access permissions for both user and group.
 
-"`shell
+```shell
 mkdir webroot
 chmod 775 webroot
 ```
 
-"`yaml
+```yaml
 ---
 services:
   web:
@@ -158,7 +158,7 @@ There will be a need for User Data Script to update the system and install docke
 3. Configure the Docker daemon to start on boot.
 4. Add the ec2-user to the docker group so you can execute Docker commands without using sudo.
 
-"`shell
+```shell
 #!/bin/sh
 # update the packages
 sudo yum update -y
@@ -179,7 +179,7 @@ A few notes here. We'll be using the default VPC, and the default subnet.
 
 First, set up the provider.
 
-"`hcl
+```hcl
 user_data = <<-EOF
 #!/bin/bash
 sudo yum update -y
@@ -191,7 +191,7 @@ EOF
 
 Let's get the provider ready.
 
-"`hcl
+```hcl
 provider "aws" {
   region = "us-east-1" # Change this to your desired region
 }
@@ -199,7 +199,7 @@ provider "aws" {
 
 We'll need a data source to get the default VPC and, for later, the Amazon Linux 2 AMI.
 
-"`hcl
+```hcl
 # Data source for default VPC
 data "aws_vpc" "default" {
   default = true
@@ -222,7 +222,7 @@ data "aws_ami" "amazon_linux" {
 
 Next, we'll create the security group.
 
-"`hcl
+```hcl
 resource "aws_security_group" "allow_ssh" {
   name        = "allow_ssh"
   description = "Allow SSH inbound traffic"
@@ -251,7 +251,7 @@ Now, we'll create a keypair and store the private key in a file on the local mac
 
 I'll create a 4096 bit RSA keypair but use a PEM file.
 
-"`hcl
+```hcl
 resource "tls_private_key" "ec2_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -272,7 +272,7 @@ resource "local_file" "ssh_key" {
 
 Now, we'll create the EC2 instance.
 
-"`hcl
+```hcl
 resource "aws_instance" "ec2_instance" {
   ami           = data.aws_ami.amazon_linux.id
   instance_type = "t2.micro"
@@ -300,7 +300,7 @@ resource "aws_instance" "ec2_instance" {
 
 Now, we'll output some helpful information.
 
-"`hcl
+```hcl
 output "instance_public_ip" {
   description = "The public IP address of the EC2 instance"
   value       = aws_instance.ec2_instance.public_ip
@@ -324,7 +324,7 @@ output "security_group_id" {
 There are several ways. One could create the Docker file image in the
 User Data Script. Write the context to a location, build it, and start.
 
-"`shell
+```shell
 # create a dockerfile and run it
 cat <<DOCKERFILE > /tmp/Dockerfile
 <<part1/docker.dockerfile>>
@@ -382,7 +382,7 @@ automagically updating their systems.
 Install SSM on the system (I used Amazon Linux 2, which is easy to integrate with SSM).
 
 * Add the following to the user data script.
-"`shell
+```shell
 sudo yum install amazon-ssm-agent -y
 sudo systemctl enable amazon-ssm-agent
 sudo systemctl start amazon-ssm-agent
@@ -399,7 +399,7 @@ to the docker image, etc.).
 4. Assuming an EC2 instance exists with the above AMI running the Docker container described in the first step, how would you ensure the host EC2 instance is up to date?
 
 Using the datasource above:
-"`hcl
+```hcl
 <<part3/datasource.tf>
 ```
 
