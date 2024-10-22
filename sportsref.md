@@ -43,6 +43,7 @@ ENTRYPOINT ["/usr/local/apache2/bin/httpd", "-D", "FOREGROUND"]
 @
 
 Build and run the Docker container with the following commands:
+
 ```shell
 <<run-apache-docker>>=
 dac -t -R apache8888.dockerfile docker-compose.md | \
@@ -59,6 +60,7 @@ ENTRYPOINT ["/usr/local/apache2/bin/apachectl", "-D", "FOREGROUND", "-D", "HTTP_
 ```
 
 Build and run the Docker container with the following commands:
+
 ```shell
 <<run-apache8888-docker>>=
 dac -t -R apache8888.dockerfile docker-compose.md | \

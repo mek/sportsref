@@ -43,6 +43,7 @@ FROM httpd:2.4
 ENTRYPOINT ["/usr/local/apache2/bin/httpd", "-D", "FOREGROUND"]
 
 Build and run the Docker container with the following commands:
+
 ```shell
 dac -t -R apache8888.dockerfile docker-compose.md | \
 docker build -t docker:srtest2 -f - .
@@ -55,6 +56,7 @@ ENTRYPOINT ["/usr/local/apache2/bin/apachectl", "-D", "FOREGROUND", "-D", "HTTP_
 ```
 
 Build and run the Docker container with the following commands:
+
 ```shell
 dac -t -R apache8888.dockerfile docker-compose.md | \
 docker build -t docker8888:srtest2 -f - .
