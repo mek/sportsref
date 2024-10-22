@@ -41,6 +41,7 @@ run Apache on port 8888 in the container.
 ```Dockerfile
 FROM httpd:2.4
 ENTRYPOINT ["/usr/local/apache2/bin/httpd", "-D", "FOREGROUND"]
+```
 
 Build and run the Docker container with the following commands:
 
@@ -328,13 +329,18 @@ User Data Script. Write the context to a location, build it, and start.
 
 ```shell
 # create a dockerfile and run it
-cat <<DOCKERFILE > /tmp/Dockerfile
-<<part1/docker.dockerfile>>
+cat <<DOCKERFILE > /tmp/DockerfileFROM alpine:3.18
+RUN apk add --no-cache curl
+ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
+FROM alpine:3.18
+RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
+RUN apk add --no-cache curl
+ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
+
 DOCKERFILE
 cd /tmp
 docker build -t mydocker:ipconfigme -f Dockerfile . 
 docker -t run mydocker:ipconfigme
-@
 ```
 
 You could also use a CI solution to build the docker container (GitHub 

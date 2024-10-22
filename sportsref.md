@@ -41,6 +41,7 @@ run Apache on port 8888 in the container.
 FROM httpd:2.4
 ENTRYPOINT ["/usr/local/apache2/bin/httpd", "-D", "FOREGROUND"]
 @
+```
 
 Build and run the Docker container with the following commands:
 
@@ -344,6 +345,7 @@ There are several ways. One could create the Docker file image in the
 User Data Script. Write the context to a location, build it, and start.
 
 ```shell
+<<user-data-docker-file>>=
 # create a dockerfile and run it
 cat <<DOCKERFILE > /tmp/Dockerfile
 <<part1/docker.dockerfile>>
@@ -419,7 +421,9 @@ to the docker image, etc.).
 
 Using the datasource above:
 ```hcl
+<<datasource>>=
 <<part3/datasource.tf>
+@
 ```
 
 The easiest way to redeploy the AMI (or if using the suggestions
