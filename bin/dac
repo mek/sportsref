@@ -1,0 +1,179 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use autodie;
+use Getopt::Long;
+use Pod::Usage;
+
+# Open file, perform block, close file
+sub with_open_file {
+    my ($fname, $mode, $block) = @_;
+    open(my $fh, $mode, $fname);
+    $block->($fh);
+    close $fh;
+}
+
+# Append or set hash key
+sub add_array_value {
+    my ($arr, $key, $value) = @_;
+    $arr->{$key} .= (exists $arr->{$key} ? "\n" : '') . $value;
+}
+
+# Recursively expand and return chunks for tangling
+sub expand_chunks {
+    my ($arr, $chunk, $indent) = @_;
+    my $output = "";
+
+    unless (exists $arr->{$chunk}) {
+        die "Chunk '$chunk' not found. Available chunks:\n" . join("\n", keys %$arr) . "\n";
+    }
+
+    for my $line (split /\n/, $arr->{$chunk}) {
+        if ($line =~ /^(\s*)<<(.+)>>\s*$/) {
+            $output .= expand_chunks($arr, $2, $1);
+        } else {
+            # add a newline only if not the first line
+            $output .= $output eq '' ? "$indent$line" : "\n$indent$line";
+        }
+    }
+    return "$output\n";
+}
+
+# Print usage message using perldoc style
+sub usage {
+    Pod::Usage::pod2usage(-exitstatus => 1, -verbose => 2);
+}
+
+# Main script logic
+
+# Parse command-line arguments
+my ($requested_chunk, $tangle_mode, $weave_mode) = (undef, 0, 0);
+GetOptions(
+    'R=s'  => \$requested_chunk,  # Requested chunk name
+    't'    => \$tangle_mode,      # Tangle mode (if true, output code blocks)
+    'w'    => \$weave_mode,       # Weave mode (if true, output Markdown as documentation)
+    'h|help' => sub { usage() },  # Print help message
+) or usage();
+
+# Ensure only one mode is selected
+if ($tangle_mode && $weave_mode) {
+    die "You can specify either tangle (-t) or weave (-w), not both.\n";
+}
+
+if (!$tangle_mode && !$weave_mode) {
+    $tangle_mode = 1; # Default mode is tangle
+}
+
+if ($tangle_mode && !$requested_chunk) {
+    $requested_chunk = '*'; # Default chunk name
+}
+
+# Get filename
+my $filename = shift or usage();
+
+# Hash to store chunks
+my %chunks;
+
+# Read the file and collect chunks
+with_open_file($filename, '<', sub {
+    my ($fh) = @_;
+    my ($in_chunk, $current_chunk);
+
+    while (my $line = <$fh>) {
+        chomp $line;
+
+        if (!$in_chunk && $line =~ /^<<(.+)>>=$/) {
+            $current_chunk = $1;
+            $in_chunk = 1;
+        }
+        elsif ($in_chunk && $line =~ /^@.*$/) {
+            $in_chunk = 0;
+            undef $current_chunk;
+        }
+        elsif ($in_chunk) {
+            add_array_value(\%chunks, $current_chunk, $line);
+        }
+    }
+});
+
+# If tangle mode is enabled, output code
+# if weave mode is enabled, output Markdown
+if ($weave_mode) {
+    # Reread the file and replace chunk definitions with their content
+    my $tangled_output = "";
+
+    with_open_file($filename, '<', sub {
+        my ($fh) = @_;
+        my $inside_chunk = 0;
+        my $current_chunk;
+
+        while (my $line = <$fh>) {
+            chomp $line;
+            if (!$inside_chunk && $line =~ /^<<(.+)>>=$/) {
+                $current_chunk = $1;
+                $inside_chunk = 1;
+	              print expand_chunks(\%chunks, $current_chunk, "");
+            }
+            elsif ($inside_chunk && $line =~ /^@.*$/) {
+                $inside_chunk = 0; # End of the current chunk
+                undef $current_chunk;
+            }
+            elsif (!$inside_chunk) {
+                print "$line\n";
+            }
+        }
+    });
+} else {
+    # Default mode is expanding the requested chunk without Markdown formatting
+    print expand_chunks(\%chunks, $requested_chunk, '');
+}
+
+exit 0;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+dac.pl - A simple script for weaving and tangling Noweb-style documents.
+
+=head1 SYNOPSIS
+
+  dac.pl -R <chunk_name> [-t|-w] filename
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-R> <chunk_name>
+
+Specify the chunk name to process. If omitted in tangle mode, the entire document will be output.
+
+=item B<-t>
+
+Tangle the specified chunk or the entire document if no chunk is given, outputting it as code.
+
+=item B<-w>
+
+Weave the specified chunk, producing a documentation-friendly Markdown format.
+
+=back
+
+=head1 DESCRIPTION
+
+This script reads a Noweb-style document and extracts the specified chunk.
+
+In tangle mode, it outputs runnable code. If no chunk is specified in tangle mode, it outputs the entire document with all chunks expanded. In weave mode, it outputs documentation interleaved with code.
+
+=head1 EXAMPLES
+
+To tangle a chunk:
+  ./dac.pl -R "root chunk" -t filename
+
+To weave the document:
+  ./dac.pl -w filename
+
+=cut
+

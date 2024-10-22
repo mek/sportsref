@@ -1,0 +1,2 @@
+mkdir webroot
+chmod 775 webroot

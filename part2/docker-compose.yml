@@ -1,0 +1,10 @@
+---
+services:
+  web:
+    build:
+      context: . 
+      dockerfile: apache.dockerfile
+    ports:
+      - "8888:80"
+    volumes:
+      - ./webroot:/usr/local/apache2/htdocs:ro
