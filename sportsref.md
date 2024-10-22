@@ -19,6 +19,13 @@ ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
 `ip -4 -o address | sed -ne 's/.*eth.*inet *\(.*\)\/.*brd.*/\1/p'` will get 
 your container IP address. 
 
+```shell
+<<run-docker>>=
+dac -t -R part1/docker.dockerfile sportsref.md \
+docker build -t docker:srpart1 -f - .
+docker run -p 8888:80 docker:srpart1
+@
+```
 # Docker Compose (Part 2)
 
 1. Create a Dockerfile that produces a Docker image that runs Apache but listens on port 8888 instead of port 80
@@ -47,9 +54,9 @@ Build and run the Docker container with the following commands:
 
 ```shell
 <<run-apache-docker>>=
-dac -t -R apache8888.dockerfile docker-compose.md | \
-docker build -t docker:srtest2 -f - .
-docker run -p 8888:80 docker:srtest2 
+dac -t -R part2/apache.dockerfile sportsref.md | \
+docker build -t docker:srpart2 -f - .
+docker run -p 8888:80 docker:srpart2 
 @
 ```
 
@@ -64,9 +71,9 @@ Build and run the Docker container with the following commands:
 
 ```shell
 <<run-apache8888-docker>>=
-dac -t -R apache8888.dockerfile docker-compose.md | \
-docker build -t docker8888:srtest2 -f - .
-docker run -p 8888:8888 docker8888:srtest2 
+dac -t -R part2/apache8888.dockerfile sportsref.md | \
+docker build -t docker8888:srpart2 -f - .
+docker run -p 8888:8888 docker8888:srpart2 
 @
 ```
 
@@ -348,6 +355,7 @@ User Data Script. Write the context to a location, build it, and start.
 <<user-data-docker-file>>=
 # create a dockerfile and run it
 cat <<DOCKERFILE > /tmp/Dockerfile
+
 <<part1/docker.dockerfile>>
 DOCKERFILE
 cd /tmp
@@ -422,7 +430,7 @@ to the docker image, etc.).
 Using the datasource above:
 ```hcl
 <<datasource>>=
-<<part3/datasource.tf>
+<<part3/datasource.tf>>
 @
 ```
 

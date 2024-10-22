@@ -21,6 +21,11 @@ ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
 `ip -4 -o address | sed -ne 's/.*eth.*inet *\(.*\)\/.*brd.*/\1/p'` will get 
 your container IP address. 
 
+```shell
+dac -t -R part1/docker.dockerfile sportsref.md \
+docker build -t docker:srpart1 -f - .
+docker run -p 8888:80 docker:srpart1
+```
 # Docker Compose (Part 2)
 
 1. Create a Dockerfile that produces a Docker image that runs Apache but listens on port 8888 instead of port 80
@@ -46,9 +51,9 @@ ENTRYPOINT ["/usr/local/apache2/bin/httpd", "-D", "FOREGROUND"]
 Build and run the Docker container with the following commands:
 
 ```shell
-dac -t -R apache8888.dockerfile docker-compose.md | \
-docker build -t docker:srtest2 -f - .
-docker run -p 8888:80 docker:srtest2 
+dac -t -R part2/apache.dockerfile sportsref.md | \
+docker build -t docker:srpart2 -f - .
+docker run -p 8888:80 docker:srpart2 
 ```
 
 ```Dockerfile
@@ -59,9 +64,9 @@ ENTRYPOINT ["/usr/local/apache2/bin/apachectl", "-D", "FOREGROUND", "-D", "HTTP_
 Build and run the Docker container with the following commands:
 
 ```shell
-dac -t -R apache8888.dockerfile docker-compose.md | \
-docker build -t docker8888:srtest2 -f - .
-docker run -p 8888:8888 docker8888:srtest2 
+dac -t -R part2/apache8888.dockerfile sportsref.md | \
+docker build -t docker8888:srpart2 -f - .
+docker run -p 8888:8888 docker8888:srpart2 
 ```
 
 The second example will run Apache on port 8888 in the container, but
@@ -329,7 +334,8 @@ User Data Script. Write the context to a location, build it, and start.
 
 ```shell
 # create a dockerfile and run it
-cat <<DOCKERFILE > /tmp/DockerfileFROM alpine:3.18
+cat <<DOCKERFILE > /tmp/Dockerfile
+FROM alpine:3.18
 RUN apk add --no-cache curl
 ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
 FROM alpine:3.18
@@ -408,7 +414,25 @@ to the docker image, etc.).
 
 Using the datasource above:
 ```hcl
-<<part3/datasource.tf>
+# Data source for default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+# Data source for Amazon Linux 2 AMI
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  owners = ["amazon"] # Use official AWS AMIs
+}
+
 ```
 
 The easiest way to redeploy the AMI (or if using the suggestions
