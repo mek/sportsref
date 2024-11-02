@@ -35,10 +35,6 @@ I want to say that the wording is a bit confusing, but I'll assume that it means
 FROM alpine:3.18
 RUN apk add --no-cache curl
 ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
-FROM alpine:3.18
-RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
-RUN apk add --no-cache curl
-ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
 ```
 
 `ip -4 -o address | sed -ne 's/.*eth.*inet *\(.*\)\/.*brd.*/\1/p'` will get 
@@ -362,10 +358,6 @@ cat <<DOCKERFILE > /tmp/Dockerfile
 FROM alpine:3.18
 RUN apk add --no-cache curl
 ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
-FROM alpine:3.18
-RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
-RUN apk add --no-cache curl
-ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
 
 DOCKERFILE
 cd /tmp
@@ -469,9 +461,6 @@ Incorporating regular redeployments, testing, and using SSM to maintain patching
 Well, I have to make a change to the dockerfile.
 
 ```dockerfile
-FROM alpine:3.18
-RUN apk add --no-cache curl
-ENTRYPOINT ["/bin/sh", "-c", "curl -s https://ifconfig.me"]
 FROM alpine:3.18
 RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
 RUN apk add --no-cache curl

@@ -470,7 +470,7 @@ Incorporating regular redeployments, testing, and using SSM to maintain patching
 Well, I have to make a change to the dockerfile.
 
 ```dockerfile
-<<part1/docker.dockerfile>>=
+<<part3/docker.dockerfile>>=
 FROM alpine:3.18
 RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
 RUN apk add --no-cache curl

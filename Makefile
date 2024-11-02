@@ -2,8 +2,9 @@ CD=`pwd`
 DAC=$(CD)/bin/dac
 PART1_TARGETS=part1/docker.dockerfile
 PART2_TARGETS=part2/apache.dockerfile part2/apache8888.dockerfile part2/docker-compose.yml part2/setup-local-webroot
-PART3_TARGETS=part3/datasource.tf part3/outputs.tf part3/keypair.tf part3/provider.tf part3/ec2.tf part3/sg.tf
+PART3_TARGETS=part3/datasource.tf part3/outputs.tf part3/keypair.tf part3/provider.tf part3/ec2.tf part3/sg.tf part3/docker.dockerfile
 ALL=README.md build-part1 build-part2 build-part3
+DOC=src/sportsref.md
 
 default:
 	@echo "Please specify a target to build"
@@ -29,17 +30,17 @@ clean:
 	@rm -f *.dockerfile
 	@rm -f */*.dockerfile
 
-.git/hooks/pre-commit: sportsref.md
+.git/hooks/pre-commit: $(DOC)
 	@$(DAC) -t -R $@ $< > $@
 	@chmod 0755 $@
 
 all: .git/hooks/pre-commit $(ALL)
 .PHONY: all default clean
 
-README.md: sportsref.md
+README.md: $(DOC)
 	@$(DAC) -w $< > $@
 
-part1/docker.dockerfile: sportsref.md
+part1/docker.dockerfile: $(DOC)
 	@echo Creating Docker Dockerfile
 	@$(DAC) -t -R $@ $< > $@
 
@@ -51,19 +52,19 @@ run-part1: build-part1
 
 .PHONY: default build-part1 run-part1
 
-part2/apache.dockerfile: sportsref.md
+part2/apache.dockerfile: $(DOC)
 	@echo Creating Apache on port 80 Dockerfile
 	@$(DAC) -t -R $@ $< > $@
 
-part2/apache8888.dockerfile: sportsref.md
+part2/apache8888.dockerfile: $(DOC)
 	@echo Creating Apache on port 8888 Dockerfile
 	@$(DAC) -t -R $@ $< > $@
 
-part2/docker-compose.yml: sportsref.md
+part2/docker-compose.yml: $(DOC)
 	@echo Creating docker-compose.yml
 	@$(DAC) -t -R $@ $< > $@
 
-part2/setup-local-webroot: sportsref.md
+part2/setup-local-webroot: $(DOC)
 	@echo Creating webroot
 	@$(DAC) -t -R $@ $< > $@
 	@cd part2; sh -x setup-local-webroot
@@ -81,26 +82,31 @@ run-part2b: build-part2
 
 .PHONY: build-part2 run-part2a run-part2b
 
-part3/provider.tf: sportsref.md
+part3/provider.tf: $(DOC)
 	@$(DAC) -t -R $@ $< > $@
 
-part3/datasource.tf: sportsref.md
+part3/datasource.tf: $(DOC)
 	@$(DAC) -t -R $@ $< > $@
        
-part3/outputs.tf: sportsref.md 
+part3/outputs.tf: $(DOC) 
 	@$(DAC) -t -R $@ $< > $@
 
-part3/keypair.tf: sportsref.md
+part3/keypair.tf: $(DOC)
 	@$(DAC) -t -R $@ $< > $@
 
-part3/sg.tf: sportsref.md 
+part3/sg.tf: $(DOC) 
 	@$(DAC) -t -R $@ $< > $@
 
-part3/ec2.tf: sportsref.md
+part3/ec2.tf: $(DOC)
 	@$(DAC) -t -R $@ $< > $@
 
 part3/tfplan: build-part3
 	@terraform -chdir=part3 plan -out tfplan
+
+part3/docker.dockerfile: $(DOC)
+	@echo Creating Docker Dockerfile
+	@$(DAC) -t -R $@ $< > $@
+
 
 build-part3: $(PART3_TARGETS)
 	@terraform -chdir=part3 init
